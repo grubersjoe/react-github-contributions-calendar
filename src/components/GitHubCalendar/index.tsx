@@ -167,8 +167,11 @@ const GitHubCalendar: React.FC<Props> = ({
   const { width, height } = getDimensions();
 
   if (error) {
-    console.error(error);
-    return <p>Error :(</p>;
+    return (
+      <p style={{ lineHeight: 1.1, color: 'red' }}>
+        <small>{error.message}</small>
+      </p>
+    );
   }
 
   if (!graphs) {
@@ -177,6 +180,7 @@ const GitHubCalendar: React.FC<Props> = ({
 
   return (
     <article className={NAMESPACE} style={style}>
+      {graphs.length === 0 && <p>No data :(</p>}
       {graphs.map(graph => {
         const { year, blocks, monthLabels, totalCount } = graph;
 

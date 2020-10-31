@@ -176,10 +176,19 @@ function getGraphDataForYear(year: number, data: ApiResult, fullYear: boolean): 
 
 export async function getGitHubGraphData(options: RequestOptions): Promise<GraphData[]> {
   const { fullYear, username, years } = options;
-  const data: ApiResult = await (await fetch(API_URL + username)).json();
 
-  if (!data.years.length) {
-    throw Error('No data available');
+  const data: ApiResult = await fetch(API_URL + username).then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      return response.json().then(response => {
+        throw new Error(response.error);
+      });
+    }
+  });
+
+  if (data.years.length === 0) {
+    return [];
   }
 
   return years.map(year => {
