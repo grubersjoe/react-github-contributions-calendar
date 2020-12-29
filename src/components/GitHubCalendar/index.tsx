@@ -14,7 +14,7 @@ import {
   Theme,
 } from '../../utils/constants';
 import { usePrevious } from '../../hooks/usePrevious';
-import { getGitHubGraphData, GraphData, Block } from '../../services/contributions';
+import { getCalendarData, CalendarData, Block } from '../../services/contributions';
 import { createCalendarTheme, getClassName } from '../../utils';
 
 export type Props = {
@@ -45,7 +45,7 @@ const GitHubCalendar: React.FC<Props> = ({
   theme = undefined,
   years = [Number(format(new Date(), 'yyyy'))],
 }) => {
-  const [graphs, setGraphs] = useState<GraphData[] | null>(null);
+  const [calendars, setCalendars] = useState<CalendarData[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   const prevYears = usePrevious(years);
@@ -54,13 +54,16 @@ const GitHubCalendar: React.FC<Props> = ({
 
   const fetchData = useCallback(() => {
     setError(null);
-    getGitHubGraphData({
+    getCalendarData({
       years,
       username,
       fullYear,
     })
-      .then(setGraphs)
-      .catch(setError);
+      .then(setCalendars)
+      .catch(error => {
+        setError(error);
+        console.error(error);
+      });
   }, [years, username, fullYear]);
 
   // Fetch data on mount
@@ -102,12 +105,12 @@ const GitHubCalendar: React.FC<Props> = ({
     return { width, height };
   }
 
-  function getTooltipMessage(day: Required<Block>) {
+  function getTooltipMessage(day: Block) {
     const date = parseISO(day.date);
-    return `<strong>${day.info.count} contributions</strong> on ${format(date, dateFormat)}`;
+    return `<strong>${day.count} contributions</strong> on ${format(date, dateFormat)}`;
   }
 
-  function renderMonthLabels(monthLabels: GraphData['monthLabels']) {
+  function renderMonthLabels(monthLabels: CalendarData['monthLabels']) {
     const style = {
       fill: getTheme().text,
       fontSize,
@@ -115,34 +118,40 @@ const GitHubCalendar: React.FC<Props> = ({
 
     // Remove the first month label if there's not enough space to the next one
     // (end of previous month)
-    if (monthLabels[1].x - monthLabels[0].x <= MIN_DISTANCE_MONTH_LABELS) {
-      monthLabels.shift();
-    }
+    // if (monthLabels[1].x - monthLabels[0].x <= MIN_DISTANCE_MONTH_LABELS) {
+    //   monthLabels.shift();
+    // }
 
-    return monthLabels.map(month => (
-      <text x={(blockSize + blockMargin) * month.x} y={fontSize} key={month.x} style={style}>
-        {month.label}
-      </text>
-    ));
+    return null;
+
+    // return monthLabels.map(month => (
+    //   <text x={(blockSize + blockMargin) * month.x} y={fontSize} key={month.x} style={style}>
+    //     {month.label}
+    //   </text>
+    // ));
   }
 
-  function renderBlocks(blocks: GraphData['blocks']) {
+  function renderBlocks(blocks: CalendarData['blocks']) {
     const theme = getTheme();
     const textHeight = Math.round(fontSize * LINE_HEIGHT);
 
+    console.log(blocks);
+
     return blocks
       .map(week =>
-        week.map((day, y) => (
-          <rect
-            x="0"
-            y={textHeight + (blockSize + blockMargin) * y}
-            width={blockSize}
-            height={blockSize}
-            fill={theme[`grade${day.info ? day.info.intensity : 0}`]}
-            data-tip={day.info ? getTooltipMessage(day as Required<Block>) : null}
-            key={day.date}
-          />
-        )),
+        week.map((day, y) =>
+          day ? (
+            <rect
+              x="0"
+              y={textHeight + (blockSize + blockMargin) * y}
+              width={blockSize}
+              height={blockSize}
+              fill={theme[`grade${day.intensity}`]}
+              data-tip={getTooltipMessage(day)}
+              key={day.date}
+            />
+          ) : null,
+        ),
       )
       .map((week, x) => (
         <g key={x} transform={`translate(${(blockSize + blockMargin) * x}, 0)`}>
@@ -167,18 +176,22 @@ const GitHubCalendar: React.FC<Props> = ({
   const { width, height } = getDimensions();
 
   if (error) {
-    console.error(error);
-    return <p>Error :(</p>;
+    return (
+      <p style={{ lineHeight: 1.1, color: 'red' }}>
+        <small>{error.message}</small>
+      </p>
+    );
   }
 
-  if (!graphs) {
+  if (!calendars) {
     return <div className={getClassName('loading', styles.loading)}>Loading …</div>;
   }
 
   return (
     <article className={NAMESPACE} style={style}>
-      {graphs.map(graph => {
-        const { year, blocks, monthLabels, totalCount } = graph;
+      {calendars.length === 0 && <p>No data :(</p>}
+      {calendars.map(calendar => {
+        const { year, blocks, monthLabels, total } = calendar;
 
         return (
           <div key={year} className={getClassName('chart', styles.chart)}>
@@ -194,7 +207,7 @@ const GitHubCalendar: React.FC<Props> = ({
               {renderBlocks(blocks)}
             </svg>
 
-            {showTotalCount && renderTotalCount(year, totalCount)}
+            {/* {showTotalCount && renderTotalCount(year, total)} */}
             {children}
           </div>
         );

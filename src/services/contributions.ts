@@ -4,98 +4,54 @@ import format from 'date-fns/format';
 import getDay from 'date-fns/getDay';
 import getMonth from 'date-fns/getMonth';
 import isAfter from 'date-fns/isAfter';
-import isSameYear from 'date-fns/isSameYear';
-import parseISO from 'date-fns/parseISO';
 import setDay from 'date-fns/setDay';
 import subYears from 'date-fns/subYears';
 
-const API_URL = 'https://github-calendar.now.sh/v1/';
+const API_URL = 'http://localhost:8080/v1/';
 const DATE_FORMAT = 'yyyy-MM-dd';
 
-export type GraphData = {
+export type CalendarData = {
   year: number;
-  blocks: Block[][];
-  monthLabels: { x: number; label: string }[];
-  totalCount: number;
+  total?: number;
+  blocks: (Block | undefined)[][];
+  monthLabels?: MonthLabel[];
 };
 
 export type Block = {
   date: string;
-  info?: {
-    date: string;
-    count: number;
-    color: string;
-    intensity: number;
-  };
+  count: number;
+  intensity: number;
 };
 
-export type MonthLabels = {
+export type MonthLabel = {
   x: number;
   label: string;
-}[];
+};
 
-export type RequestOptions = {
-  fullYear: boolean;
+type RequestOptions = {
   username: string;
-  years: number[];
+  years?: number[];
+  fullYear?: boolean;
 };
 
-type ApiResult = {
+type ApiResponse = {
   years: {
-    year: string;
-    total: number;
-    range: {
-      start: string;
-      end: string;
+    [year: string]: {
+      year: number;
+      total: number;
     };
-  }[];
-  contributions: {
-    date: string;
-    count: number;
-    color: string;
-    intensity: number;
-  }[];
+  };
+  contributions: Block[];
 };
 
-function getContributionsForDate(data: ApiResult, date: string) {
+function getContributionsForDate(data: ApiResponse, date: string) {
   return data.contributions.find(contrib => contrib.date === date);
 }
 
-function getContributionCountForLastYear(data: ApiResult) {
-  const { contributions } = data;
+function getBlocksForYear(year: number, data: ApiResponse, fullYear?: boolean): Block[][] {
   const now = new Date();
-
-  // Start date for accumulating the values
-  const begin = contributions.findIndex(contrib => contrib.date === format(now, DATE_FORMAT));
-
-  // No data for today given
-  if (begin === -1) {
-    return 0;
-  }
-
-  // Check if there is data for the day one year past
-  let end = contributions.findIndex(contrib => {
-    return contrib.date === format(subYears(now, 1), DATE_FORMAT);
-  });
-
-  // Take the oldest contribution otherwise, if not enough data exists
-  if (end === -1) {
-    end = contributions.length - 1;
-  }
-
-  return contributions.slice(begin, end).reduce((acc, contrib) => acc + contrib.count, 0);
-}
-
-function getContributionCountForYear(data: ApiResult, year: number) {
-  const yearEntry = data.years.find(entry => entry.year === String(year));
-
-  return yearEntry ? yearEntry.total : 0;
-}
-
-function getBlocksForYear(year: number, data: ApiResult, fullYear: boolean) {
-  const now = new Date();
-  const firstDate = fullYear ? subYears(now, 1) : parseISO(`${year}-01-01`);
-  const lastDate = fullYear ? now : parseISO(`${year}-12-31`);
+  const firstDate = fullYear ? subYears(now, 1) : new Date(`${year}-01-01`);
+  const lastDate = fullYear ? now : new Date(`${year}-12-31`);
 
   let weekStart = firstDate;
 
@@ -105,51 +61,43 @@ function getBlocksForYear(year: number, data: ApiResult, fullYear: boolean) {
   }
 
   // Fetch graph data for first row (Sundays)
-  const firstRowDates = [];
+  const firstRowDates: Block[] = [];
   while (weekStart <= lastDate) {
     const date = format(weekStart, DATE_FORMAT);
-
-    firstRowDates.push({
-      date,
-      info: getContributionsForDate(data, date),
-    });
-
+    firstRowDates.push(getContributionsForDate(data, date) as Block);
     weekStart = setDay(weekStart, 7);
   }
 
   // Add the remainig days per week (column for column)
-  return firstRowDates.map(dateObj => {
+  return firstRowDates.map(block => {
     const dates = [];
-    for (let i = 0; i <= 6; i += 1) {
-      const date = format(setDay(parseISO(dateObj.date), i), DATE_FORMAT);
+    for (let i = 0; i <= 6; i++) {
+      const date = format(setDay(new Date(block.date), i), DATE_FORMAT);
 
-      if (isAfter(parseISO(date), lastDate)) {
+      if (isAfter(new Date(date), lastDate)) {
         break;
       }
 
-      dates.push({
-        date,
-        info: getContributionsForDate(data, date),
-      });
+      dates.push(getContributionsForDate(data, date) as Block);
     }
 
     return dates;
   });
 }
 
-function getMonthLabels(blocks: GraphData['blocks'], fullYear: boolean): MonthLabels {
+function getMonthLabels(blocks: CalendarData['blocks'], fullYear: boolean): MonthLabel[] {
   const weeks = blocks.slice(0, fullYear ? blocks.length - 1 : blocks.length);
   let previousMonth = 0; // January
 
-  return weeks.reduce<MonthLabels>((labels, week, x) => {
-    const firstWeekDay = parseISO(week[0].date);
+  return weeks.reduce<MonthLabel[]>((labels, week, index) => {
+    const firstWeekDay = new Date(week.find(block => block === undefined).date);
     const month = getMonth(firstWeekDay) + 1;
     const monthChanged = month !== previousMonth;
-    const firstMonthIsDecember = x === 0 && month === 12;
+    const firstMonthIsDecember = index === 0 && month === 12;
 
     if (monthChanged && !firstMonthIsDecember) {
       labels.push({
-        x,
+        x: index,
         label: format(firstWeekDay, 'MMM'),
       });
       previousMonth = month;
@@ -159,32 +107,46 @@ function getMonthLabels(blocks: GraphData['blocks'], fullYear: boolean): MonthLa
   }, []);
 }
 
-function getGraphDataForYear(year: number, data: ApiResult, fullYear: boolean): GraphData {
+function getCalendarDataForYear(year: number, data: ApiResponse, fullYear?: boolean): CalendarData {
   const blocks = getBlocksForYear(year, data, fullYear);
-  const monthLabels = getMonthLabels(blocks, fullYear);
-  const totalCount = fullYear
-    ? getContributionCountForLastYear(data)
-    : getContributionCountForYear(data, year);
+  // const monthLabels = getMonthLabels(blocks, fullYear);
+  const total = (fullYear ? data.lastYear?.total : data[year]?.total) ?? 0;
 
   return {
     year,
     blocks,
-    monthLabels,
-    totalCount,
+    // monthLabels,
+    total,
   };
 }
 
-export async function getGitHubGraphData(options: RequestOptions): Promise<GraphData[]> {
+export async function getCalendarData(options: RequestOptions): Promise<CalendarData[]> {
   const { fullYear, username, years } = options;
-  const data: ApiResult = await (await fetch(API_URL + username)).json();
+  const currentYear = new Date().getFullYear();
 
-  if (!data.years.length) {
-    throw Error('No data available');
+  const params = new URLSearchParams({
+    ...(fullYear && { fullYear: 'true' }),
+  });
+
+  if (years) {
+    years.forEach(y => params.append('y', String(y)));
   }
 
-  return years.map(year => {
-    const isCurrentYear = isSameYear(parseISO(String(year)), new Date());
+  const data: ApiResponse = await fetch(`${API_URL}${username}?${params}`).then(resp =>
+    resp.ok
+      ? resp.json()
+      : resp.json().then(response => {
+          throw new Error(response.error);
+        }),
+  );
 
-    return getGraphDataForYear(year, data, isCurrentYear && fullYear);
-  });
+  if (data.contributions.length === 0) {
+    return [];
+  }
+
+  if (fullYear) {
+    return [getCalendarDataForYear(currentYear, data, true)];
+  }
+
+  return Object.values(data.years).map(({ year }) => getCalendarDataForYear(year, data));
 }
