@@ -23,9 +23,9 @@ header {
   align-items: center;
   justify-content: center;
   padding: 1.5rem 0 1.25rem;
-  background-image: linear-gradient(120deg, hsl(172, 66%, 22%), hsl(172, 66%, 14%));
+  background-image: linear-gradient(120deg, #222, #111);
   color: #fff;
-  font-size: 110%;
+  font-size: 20px;
   text-align: center;
 }
 
@@ -35,6 +35,7 @@ header a {
 
 h1,
 h2,
+h3,
 header {
   line-height: 1.2;
 }
@@ -56,43 +57,71 @@ h3 {
   font-size: 1.25rem;
 }
 
+p,
+ul,
+ol {
+  max-width: 72ch;
+}
+
 p {
   margin: 0 0 1.5rem;
 }
 
+li {
+  margin-bottom: 0.75em;
+}
+
+li p {
+  margin: 0 0 0.75rem;
+}
+
+li pre {
+  margin: 0 0 1rem;
+}
+
 a {
   color: inherit;
-  text-decoration: none;
+  text-decoration: underline 2px hsl(216, 14%, 88%);
+  text-underline-offset: 3px;
+  transition: text-decoration 100ms ease-out 0s;
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration: underline 2px hsl(216, 14%, 80%);
 }
 
-section :last-child {
+ul a,
+ol a {
+  text-decoration: underline 2px transparent;
+}
+
+section > :last-child {
   margin-bottom: 0;
 }
 
 hr {
   margin: 2.5rem 0;
   height: 3px;
-  background-color: #ebedf0;
+  background-color: hsl(216, 14%, 90%);
   border: 0;
 }
 
-code,
-pre {
-  font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
-  font-size: 15px;
+pre,
+code {
+  font-family: 'Roboto Mono', SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+  font-size: 16px;
+  background: hsl(216, 14%, 93%);
 }
-
 pre {
   margin: 0 0 1.5rem;
   padding: 0.75em 1em;
   overflow-x: auto;
-  background: #ebedf0;
-  border-radius: 0.2em;
-  line-height: 1.4;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+pre code {
+  background-color: inherit;
 }
 
 table {
@@ -100,15 +129,15 @@ table {
   min-width: 540px;
   margin: 0;
   border-collapse: collapse;
-  font-size: 90%;
+  font-size: 16px;
 }
 
 thead {
-  border-bottom: 2px solid hsl(216, 14%, 80%);
+  border-bottom: 2px solid hsl(216, 14%, 90%);
 }
 
 tr {
-  border-bottom: 1px solid hsl(216, 14%, 80%);
+  border-bottom: 1px solid hsl(216, 14%, 90%);
 }
 
 th {
@@ -137,31 +166,32 @@ td code {
   font-size: 90%;
 }
 
+p code {
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
 form {
   margin: 2.5rem 0 0;
+  display: flex;
+  justify-content: center;
 }
 
 input,
 button {
   width: 100%;
   margin-bottom: 1rem;
-  font-size: 90%;
-  transition: all 150ms ease-in-out;
+  font-family: inherit;
+  font-size: 1rem;
+  border: none;
   border-radius: 4px;
 }
 
 input {
   min-width: 15em;
   margin-right: 0.75em;
-  padding: calc(0.5em + 2px) 0.75em;
+  padding: 0.6em 0.8em;
   background-color: #fff;
-  border: none;
-}
-
-button:focus,
-button:hover {
-  background-color: #fff;
-  color: #1b1b1b;
 }
 
 input:invalid {
@@ -170,11 +200,20 @@ input:invalid {
 
 button {
   padding: 0.5em 1em;
-  background-color: transparent;
-  border: 2px solid #eee;
-  color: #fff;
   cursor: pointer;
-  font-weight: 500;
+  background-color: #222;
+  color: #fff;
+}
+
+button:active {
+  position: relative;
+  top: 1px;
+  left: 1px;
+}
+
+header button {
+  background-color: #30a14e;
+  font-weight: 600;
 }
 
 .container {
@@ -182,7 +221,7 @@ button {
   padding: 0 16px;
 }
 
-.react-github-calendar {
+.react-activity-calendar {
   margin: 0 0 1.5rem;
 }
 
@@ -198,7 +237,7 @@ button {
   }
 
   .container {
-    width: 800px;
+    width: calc(856px + 2rem);
     margin: 2rem auto;
   }
 }

@@ -1,5 +1,3 @@
-import GitHubCalendar from './components/GitHubCalendar/index';
-import { createCalendarTheme } from './utils';
+import GitHubCalendar from './Calendar';
 
-export { createCalendarTheme };
 export default GitHubCalendar;

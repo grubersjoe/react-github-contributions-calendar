@@ -1,38 +1,18 @@
-import React, { CSSProperties } from 'react';
+import React, { FunctionComponent, CSSProperties } from 'react';
 import { ColorInput } from 'tinycolor2';
+import { Day } from 'date-fns';
+import { Props as ActivityCalendarProps, Theme as CalendarTheme } from 'react-activity-calendar';
 
-export type Props = {
+import { Year } from './types';
+
+export interface Props extends Omit<ActivityCalendarProps, 'data'> {
   username: string;
-  blockMargin?: number;
-  blockSize?: number;
-  color?: ColorInput;
-  dateFormat?: string;
-  fontSize?: number;
-  fullYear?: boolean;
-  showTotalCount?: boolean;
-  style?: CSSProperties;
-  theme?: Theme;
-  years?: Array<number>;
-};
+  year?: Year;
+}
 
-export type Theme = {
-  background: string;
-  text: string;
-  grade4: string;
-  grade3: string;
-  grade2: string;
-  grade1: string;
-  grade0: string;
-};
+export type Theme = CalendarTheme;
 
-declare function createCalendarTheme(
-  baseColor: ColorInput,
-  textColor?: string,
-  emptyCellColor?: string,
-  background?: string,
-): Theme;
-
-declare const GitHubCalendar: React.FC<Props>;
+declare const GitHubCalendar: FunctionComponent<Props>;
 
 export { createCalendarTheme };
 export default GitHubCalendar;

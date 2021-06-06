@@ -19,20 +19,22 @@
     "start": "rollup -c -w"
   },
   "dependencies": {
-    "date-fns": "^2.14.0",
+    "date-fns": "^2.22.0",
+    "react-activity-calendar": "^1.0.3",
     "tinycolor2": "^1.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.10.3",
-    "@babel/plugin-proposal-class-properties": "^7.10.1",
     "@babel/preset-env": "^7.10.3",
     "@babel/preset-react": "^7.10.1",
     "@babel/preset-typescript": "^7.10.1",
-    "@types/react": "^16.9.41",
-    "@types/react-dom": "^16.9.8",
+    "@types/jest": "^26.0.23",
+    "@types/react": "^17.0.9",
+    "@types/react-dom": "^17.0.6",
+    "@types/react-tooltip": "^4.2.4",
     "@types/tinycolor2": "^1.4.2",
-    "@typescript-eslint/eslint-plugin": "^3.4.0",
-    "@typescript-eslint/parser": "^3.4.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
     "babel-eslint": "^10.1.0",
     "cross-env": "^7.0.2",
     "eslint": "^7.3.1",
@@ -40,9 +42,9 @@
     "eslint-plugin-react-hooks": "^4.0.4",
     "gh-pages": "^3.1.0",
     "prettier": "^2.0.5",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-scripts": "^3.4.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "^4.0.3",
     "rollup": "^2.18.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -50,14 +52,14 @@
     "rollup-plugin-filesize": "^9.0.1",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-peer-deps-external": "^2.2.2",
-    "rollup-plugin-postcss": "^3.1.2",
+    "rollup-plugin-postcss": "^3.0.0",
     "rollup-plugin-url": "^3.0.1",
-    "typescript": "^3.9.5"
+    "typescript": "^4.3.2"
   },
   "peerDependencies": {
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0",
-    "react-tooltip": "^3.9.0"
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
+    "react-tooltip": "^17.0.0"
   },
   "files": [
     "dist"
